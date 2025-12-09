@@ -1,160 +1,130 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ChevronRight, Download, FileJson } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, Bell, Search, Settings, Sun, Moon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
-export default function Header() {
-  const pathname = usePathname();
-  const [isExporting, setIsExporting] = useState(false);
+export default function Header({ onMenuClick, sidebarCollapsed }) {
+  const [theme, setTheme] = useState("light");
 
-  const pageTitles = {
-    '/dashboard': {
-      title: 'Dashboard',
-      description: 'Overview of budget and expenses',
-    },
-    '/expenses': {
-      title: 'Expenses',
-      description: 'Manage and track all expenses',
-    },
-    '/expenses/add': {
-      title: 'Add Expense',
-      description: 'Record a new expense entry',
-    },
-    '/budget': {
-      title: 'Budget Management',
-      description: 'Manage budget allocations and proposals',
-    },
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+    // Implement actual theme switching logic
   };
-
-  const generateBreadcrumbs = () => {
-    const segments = pathname.split('/').filter(Boolean);
-    const breadcrumbs = [{ label: 'Home', href: '/dashboard' }];
-
-    let currentPath = '';
-    segments.forEach((segment, index) => {
-      currentPath += `/${segment}`;
-      const isLast = index === segments.length - 1;
-      const label =
-        segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ');
-
-      breadcrumbs.push({
-        label,
-        href: currentPath,
-        isLast,
-      });
-    });
-
-    return breadcrumbs;
-  };
-
-  const currentPage = pageTitles[pathname] || {
-    title: 'Page',
-    description: '',
-  };
-
-  const showExportButtons =
-    pathname === '/dashboard' || pathname === '/expenses';
-
-  const handleExcelExport = async () => {
-    setIsExporting(true);
-    try {
-      const url = `/api/export/excel?from=&to=&category=&vendor=&activity=`;
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handlePdfExport = async () => {
-    setIsExporting(true);
-    try {
-      const url = `/api/export/pdf?from=&to=&category=&vendor=&activity=`;
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <header className="bg-white border-b border-neutral-200 sticky top-0 z-30 shadow-sm">
-      <div className="ml-64">
-        {/* Breadcrumb Section */}
-        <div className="px-6 py-3 bg-neutral-50 border-b border-neutral-200">
-          <nav className="flex items-center gap-2 text-sm">
-            {breadcrumbs.map((crumb, index) => (
-              <div key={crumb.href} className="flex items-center gap-2">
-                {index > 0 && (
-                  <ChevronRight size={16} className="text-neutral-400" />
-                )}
-                {crumb.isLast ? (
-                  <span className="text-neutral-600 font-medium">
-                    {crumb.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={crumb.href}
-                    className="text-rsblue hover:text-crimson transition-colors font-medium"
-                  >
-                    {crumb.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </nav>
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-zinc-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-zinc-800 dark:bg-zinc-900/95 dark:supports-[backdrop-filter]:bg-zinc-900/60">
+      <div className="flex w-full items-center justify-between px-4 lg:px-8">
+        {/* Left Section */}
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMenuClick}
+            className="lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+
+          {/* Search Bar */}
+          <div className="relative hidden md:block">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+            <Input
+              type="search"
+              placeholder="Search transactions, categories..."
+              className="w-64 pl-9 lg:w-96"
+            />
+          </div>
         </div>
 
-        {/* Header Content */}
-        <div className="px-6 py-6 flex items-start justify-between">
-          {/* Title Section */}
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-neutral-900">
-              {currentPage.title}
-            </h1>
-            {currentPage.description && (
-              <p className="mt-2 text-sm text-neutral-600">
-                {currentPage.description}
-              </p>
+        {/* Right Section */}
+        <div className="flex items-center gap-2">
+          {/* Mobile Search */}
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Search className="h-5 w-5" />
+          </Button>
+
+          {/* Theme Toggle */}
+          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            {theme === "light" ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
             )}
-          </div>
+            <span className="sr-only">Toggle theme</span>
+          </Button>
 
-          {/* Export Buttons */}
-          {showExportButtons && (
-            <div className="flex items-center gap-3 ml-6">
-              <button
-                onClick={handleExcelExport}
-                disabled={isExporting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 hover:border-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
-                title="Export data to Excel spreadsheet"
-              >
-                <Download size={18} />
-                <span className="hidden sm:inline">Excel</span>
-              </button>
+          {/* Notifications */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-600" />
+                <span className="sr-only">Notifications</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="max-h-96 overflow-y-auto">
+                <DropdownMenuItem className="flex flex-col items-start py-3">
+                  <p className="text-sm font-medium">Budget Alert</p>
+                  <p className="text-xs text-zinc-500">
+                    You've spent 80% of your grocery budget
+                  </p>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="flex flex-col items-start py-3">
+                  <p className="text-sm font-medium">New Transaction</p>
+                  <p className="text-xs text-zinc-500">
+                    $45.99 at Amazon - 2 hours ago
+                  </p>
+                </DropdownMenuItem>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-              <button
-                onClick={handlePdfExport}
-                disabled={isExporting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-crimson text-white hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
-                title="Export data to PDF document"
-              >
-                <FileJson size={18} />
-                <span className="hidden sm:inline">PDF</span>
-              </button>
-
-              {isExporting && (
-                <span className="text-xs text-neutral-500 animate-pulse">
-                  Exporting...
-                </span>
-              )}
-            </div>
-          )}
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src="/avatar.png" alt="User" />
+                  <AvatarFallback className="bg-emerald-600 text-white">
+                    U
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">User Name</p>
+                  <p className="text-xs text-zinc-500">user@email.com</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Billing</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-600">
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
